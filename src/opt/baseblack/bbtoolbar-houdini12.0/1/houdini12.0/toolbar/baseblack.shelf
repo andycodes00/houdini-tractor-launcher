@@ -12,7 +12,6 @@
   <tool name="tractor_tool_1" label="Tractor" icon="/opt/sidefx/houdini/12.0/houdini/help/icons/medium/ROP/alfred.png">
     <script scriptType="python"><![CDATA[import os
 import sys
-sys.path.append('/home/andrew.bunday/WorkDropbox/Projects/houdini_renderlauncher/python')
 import tractor.api
 
 def taskIdGenerator():
