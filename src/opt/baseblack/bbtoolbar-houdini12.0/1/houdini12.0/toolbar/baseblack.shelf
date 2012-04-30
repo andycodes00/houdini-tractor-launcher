@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="baseblack_1" label="Baseblack">
+    <memberTool name="tractor_tool_1"/>
+  </toolshelf>
+
+  <tool name="tractor_tool_1" label="Tractor" icon="/opt/sidefx/houdini/12.0/houdini/help/icons/medium/ROP/alfred.png">
+    <script scriptType="python"><![CDATA[import os
+import sys
+sys.path.append('/home/andrew.bunday/WorkDropbox/Projects/houdini_renderlauncher/python')
+import tractor.api
+
+def taskIdGenerator():
+    i = 1
+    while True:
+        yield i
+        i += 1
+
+# Get Mantra driver nodes
+mantra_nodes = []
+for c in hou.node("/out").children():
+    if c.type().name() == "ifd":
+        hou.ui.displayMessage("Found driver node: '%s'" % c.name())
+        if c.parm('vm_picture').unexpandedString() != 'ip':
+            mantra_nodes.append(c)
+        else:
+            print "discarding %s" % c.name()
+
+if not len(mantra_nodes):
+    hou.ui.displayMessage("No Mantra nodes with image sequence output detetected.")
+
+
+"""Only continue is the user pressed OK"""
+
+spooldirectory=tractor.api.getSpoolDirectory()
+
+try:
+    os.makedirs(spooldirectory, 0775)
+except:
+    pass
+
+for mout in mantra_nodes:
+    #activate idf output
+    mout.parm('soho_outputmode').set(True)
+    mout.parm('soho_diskfile').set(os.path.join(spooldirectory,'%s.$F04.ifd' % mout.name()))
+
+    start = mout.parm('f1').eval()
+    end   = mout.parm('f2').eval()
+    step  = mout.parm('f3').eval()
+
+    #to start with we won't override anything
+    mout.render()
+
+    # ... process tractor job and submit
+    hou.ui.displayMessage("Submitting %s to tractor" % mout.name())
+
+    tid = taskIdGenerator()
+
+    jobtree = tractor.api.Job('[mantra] %s [%d-%d]' % (mout.name(), start, end) )
+    jobtree.addEnvKey('TANK=Total')
+
+    for frame in range(start,end+1, step):
+        frame_ifd = "%s.%04d.ifd" % (mout.name(), frame)
+        params = []
+        params.extend(['-V', '2a'])
+        params.append('-j8')
+        params.extend(['-f', os.path.join(spooldirectory, frame_ifd)])
+
+        frame_task = tractor.api.Task(tid.next(), "[mantra] %s [%04d]" % (mout.name(),frame))
+        frame_cmd  = frame_task.addRemoteCmd(cmd='mantra', service='MantraRender')
+
+        for pm in params:
+            frame_cmd.addOption(pm)
+        jobtree.addTask(frame_task)
+
+    # ... any post render commands? Cleanup of ass files?
+
+    # ... serialize and submit to tractor spooler.
+    job = tractor.api.Serializer(jobtree)
+    job.spool('tractor', startpaused=False)]]></script>
+  </tool>
+</shelfDocument>
