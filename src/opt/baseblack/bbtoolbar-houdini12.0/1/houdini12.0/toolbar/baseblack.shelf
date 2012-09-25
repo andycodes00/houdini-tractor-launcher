@@ -36,7 +36,7 @@ if not len(mantra_nodes):
 
 """Only continue is the user pressed OK"""
 
-spooldirectory=tractor.api.getSpoolDirectory()
+spooldirectory=tractor.api.getSpoolDirectory(refresh=True)
 
 try:
     os.makedirs(spooldirectory, 0775)
@@ -46,7 +46,11 @@ except:
 for mout in mantra_nodes:
     #activate idf output
     mout.parm('soho_outputmode').set(True)
-    mout.parm('soho_diskfile').set(os.path.join(spooldirectory,'%s.$F04.ifd' % mout.name()))
+    try:
+        img_seq = os.path.basename(mout.parm("vm_picture").unexpandedString())
+        mout.parm('soho_diskfile').set(os.path.join(spooldirectory,'%s.$F04.ifd' % img_seq.split('.')[0])
+    except:
+        mout.parm('soho_diskfile').set(os.path.join(spooldirectory,'%s.$F04.ifd' % mout.name()))
 
     start = mout.parm('f1').eval()
     end   = mout.parm('f2').eval()

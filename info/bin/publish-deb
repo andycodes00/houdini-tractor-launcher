@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# reprepro -V --basedir /home/tech/repositories/apt/baseblack --component testing includedeb ubuntu-lucid mocha-wrapper_1-baseblack-r3_all.deb
+#Mon Aug 20 14:23:32 BST 2012
+
 EXPECTED_ARGS=2
 E_BADARGS=64
 if [ $# -ne $EXPECTED_ARGS ]; then
@@ -7,8 +8,13 @@ if [ $# -ne $EXPECTED_ARGS ]; then
 	exit $E_BADARGS
 fi
 
-REPOSITORY="baseblack-lucid"
+
 
 COMPONENT=$1
 PACKAGE_FILE=$2
+
+REPOSITORY="baseblack-precise"
+reprepro -V --basedir /home/tech/repositories/apt/${REPOSITORY} --component ${COMPONENT} includedeb ${REPOSITORY} ${PACKAGE_FILE}
+
+REPOSITORY="baseblack-lucid"
 reprepro -V --basedir /home/tech/repositories/apt/${REPOSITORY} --component ${COMPONENT} includedeb ${REPOSITORY} ${PACKAGE_FILE}

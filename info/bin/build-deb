@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
+# Mon Aug 20 14:23:32 BST 2012
+
 if [ ! -d info ];then
 	echo "You are not inside an Application or Application-wrapper directory"
 	exit 1
 fi
+
+if [ -f ~/bin/build-deb ]; then
+	echo "You still have an old version of build-deb in your ~/bin. Please delete it"
+fi 
 
 MY_CHECKSUM=$(md5sum ${0} |cut -f1 -d' ')
 LOCAL_CHECKSUM=$(md5sum info/bin/build-deb |cut -f1 -d' ')
@@ -33,8 +39,17 @@ if [[ $PACKAGE_NAME == *wrapper* ]]; then
 else
 	PACKAGE_ARCH=`uname -m`
 fi
+PACKAGE_TARGET_PLATFORM=$( cat /etc/lsb-release |grep DISTRIB_CODENAME|cut -d'=' -f2)
 
-PACKAGE_BUILD_VERSION=`cat info/BUILD_VERSION`
+#Jenkins uses build_number we use version..
+if [ -z "$BUILD_NUMBER" ]
+then 
+	PACKAGE_BUILD_VERSION=`cat info/BUILD_VERSION`
+else
+	PACKAGE_BUILD_VERSION=$BUILD_NUMBER
+fi
+
+SRC_DIRS=$(ls -m src/|sed 's/,/ /g')
 
 
 if [ -f info/$PACKAGE_NAME.postinst ]; then
@@ -47,8 +62,8 @@ if [ -f info/$PACKAGE_NAME.postinst ]; then
 	   --post-install info/$PACKAGE_NAME.postinst \
 	   --url "$PACKAGE_URL" \
 	   --description "$PACKAGE_DESC" \
-	   --iteration "baseblack-r$PACKAGE_BUILD_VERSION" \
-	   --replaces "$PACKAGE_NAME (<< $PACKAGE_VERS)" 
+	   --iteration "baseblack-$PACKAGE_TARGET_PLATFORM-r$PACKAGE_BUILD_VERSION" \
+	   --replaces "$PACKAGE_NAME (<< $PACKAGE_VERS)" ${SRC_DIRS}
 
 elif [ -f info/$PACKAGE_NAME.postrm ]; then
 
@@ -61,8 +76,8 @@ elif [ -f info/$PACKAGE_NAME.postrm ]; then
 	   --post-uninstall info/$PACKAGE_NAME.postrm \
 	   --url "$PACKAGE_URL" \
 	   --description "$PACKAGE_DESC" \
-	   --iteration "baseblack-r$PACKAGE_BUILD_VERSION" \
-	   --replaces "$PACKAGE_NAME (<< $PACKAGE_VERS)" 
+	   --iteration "baseblack-$PACKAGE_TARGET_PLATFORM-r$PACKAGE_BUILD_VERSION" \
+	   --replaces "$PACKAGE_NAME (<< $PACKAGE_VERS)" ${SRC_DIRS}
 
 elif [ -f info/$PACKAGE_NAME.postrm ]; then
 	if [ -f -f info/$PACKAGE_NAME.postinst ]; then
@@ -76,8 +91,8 @@ elif [ -f info/$PACKAGE_NAME.postrm ]; then
 		   --post-install info/$PACKAGE_NAME.postinst \
 		   --url "$PACKAGE_URL" \
 		   --description "$PACKAGE_DESC" \
-		   --iteration "baseblack-r$PACKAGE_BUILD_VERSION" \
-		   --replaces "$PACKAGE_NAME (<< $PACKAGE_VERS)"
+		   --iteration "baseblack-$PACKAGE_TARGET_PLATFORM-r$PACKAGE_BUILD_VERSION" \
+		   --replaces "$PACKAGE_NAME (<< $PACKAGE_VERS)" ${SRC_DIRS}
 	fi
 
 else 
@@ -89,8 +104,8 @@ else
 	   -t deb \
 	   --url "$PACKAGE_URL" \
 	   --description "$PACKAGE_DESC" \
-	   --iteration "baseblack-r$PACKAGE_BUILD_VERSION" \
-	   --replaces "$PACKAGE_NAME (<< $PACKAGE_VERS)"
+	   --iteration "baseblack-$PACKAGE_TARGET_PLATFORM-r$PACKAGE_BUILD_VERSION" \
+	   --replaces "$PACKAGE_NAME (<< $PACKAGE_VERS)" ${SRC_DIRS}
 fi
 
 echo `expr ${PACKAGE_BUILD_VERSION} + 1` > info/BUILD_VERSION
