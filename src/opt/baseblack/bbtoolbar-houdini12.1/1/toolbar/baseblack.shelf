@@ -9,7 +9,7 @@
     <memberTool name="tractor_tool_1"/>
   </toolshelf>
 
-  <tool name="tractor_tool_1" label="Tractor" icon="/opt/sidefx/houdini/12.0/houdini/help/icons/medium/ROP/alfred.png">
+  <tool name="tractor_tool_1" label="Tractor" icon="/opt/sidefx/houdini/12.1/houdini/help/icons/medium/ROP/alfred.png">
     <script scriptType="python"><![CDATA[import os
 import sys
 import tractor.api
