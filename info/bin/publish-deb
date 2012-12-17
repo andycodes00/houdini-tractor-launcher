@@ -4,17 +4,14 @@
 EXPECTED_ARGS=2
 E_BADARGS=64
 if [ $# -ne $EXPECTED_ARGS ]; then
-	echo "Usage: `basename $0` COMPONENT (stable|unstable) PACKAGE_NAME (customthingy4.0_4.0.1-baseblack-r999_all.deb)"
-	exit $E_BADARGS
+    echo "Usage: `basename $0` COMPONENT (stable|unstable) PACKAGE_NAME (customthingy4.0_4.0.1-baseblack-r999_all.deb)"
+    exit $E_BADARGS
 fi
 
 
 
 COMPONENT=$1
 PACKAGE_FILE=$2
-
-REPOSITORY="baseblack-precise"
-reprepro -V --basedir /home/tech/repositories/apt/${REPOSITORY} --component ${COMPONENT} includedeb ${REPOSITORY} ${PACKAGE_FILE}
 
 REPOSITORY="baseblack-lucid"
 reprepro -V --basedir /home/tech/repositories/apt/${REPOSITORY} --component ${COMPONENT} includedeb ${REPOSITORY} ${PACKAGE_FILE}
