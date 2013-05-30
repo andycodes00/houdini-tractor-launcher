@@ -24,11 +24,11 @@ def taskIdGenerator():
 mantra_nodes = []
 for c in hou.node("/out").children():
     if c.type().name() == "ifd":
-        hou.ui.displayMessage("Found driver node: '%s'" % c.name())
+        hou.ui.setStatusMessage("Found Mantra Render node: '%s'" % c.name(), severity=hou.severityType.ImportantMessage)
         if c.parm('vm_picture').unexpandedString() != 'ip':
             mantra_nodes.append(c)
         else:
-            print "discarding %s" % c.name()
+            hou.ui.setStatusMessage("discarding %s" % c.name(), severity=hou.severityType.Message)
 
 if not len(mantra_nodes):
     hou.ui.displayMessage("No Mantra nodes with image sequence output detetected.")
@@ -41,7 +41,8 @@ print spooldirectory
 
 try:
     os.makedirs(spooldirectory, 0775)
-except:
+except Exception:
+    # woohoo
     pass
 
 for mout in mantra_nodes:
@@ -57,7 +58,7 @@ for mout in mantra_nodes:
     mout.render()
 
     # ... process tractor job and submit
-    hou.ui.displayMessage("Submitting %s to tractor" % mout.name())
+    hou.ui.setStatusMessage("Submitting %s to tractor" % mout.name(), severity=hou.severityType.ImportantMessage)
 
     tid = taskIdGenerator()
 
